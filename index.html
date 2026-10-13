@@ -1205,8 +1205,8 @@
     }
 
     async function loadProjects() {
-      const customer = els.customerSelect.value;
-      if (!customer) {
+      const customerIdValue = els.customerSelect.value;
+      if (!customerIdValue) {
         setStatus(els.projectStatus, "Select a customer first.", "error");
         return;
       }
@@ -1217,18 +1217,18 @@
       els.surveyCard.classList.add("hidden");
 
       try {
-        let projects = state.projectsByCustomer.get(customer);
+        let projects = state.projectsByCustomer.get(customerIdValue);
         if (!projects) {
-          const raw = await apiFetch(`CustomerProjects/${encodeURIComponent(customer)}`);
+          const raw = await apiFetch(`CustomerProjects/${encodeURIComponent(customerIdValue)}`);
           projects = Array.isArray(raw) ? raw : [];
-          state.projectsByCustomer.set(customer, projects);
+          state.projectsByCustomer.set(customerIdValue, projects);
         }
         state.projects = projects;
         renderProjects();
-        const customer = state.customers.find((c) => customerId(c) === els.customerSelect.value);
+        const selectedCustomer = state.customers.find((c) => customerId(c) === customerIdValue);
         setStatus(
           els.projectStatus,
-          `${state.projects.length} project(s) found${customer ? ` for ${customerName(customer)}` : ""}.`,
+          `${state.projects.length} project(s) found${selectedCustomer ? ` for ${customerName(selectedCustomer)}` : ""}.`,
           "ok"
         );
       } catch (error) {
