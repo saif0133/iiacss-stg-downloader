@@ -1,0 +1,1890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dooblo → SPSS Downloader</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --panel: #0d1b2e;
+      --panel-2: #12233a;
+      --text: #f4f7fb;
+      --muted: #93a4bb;
+      --line: #223854;
+      --accent: #ffd447;
+      --accent-2: #67e8f9;
+      --danger: #fb7185;
+      --ok: #4ade80;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top right, #142b47 0, var(--bg) 38%, #050b14 100%);
+      color: var(--text);
+    }
+
+    .wrap {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 42px 0 64px;
+    }
+
+    .hero {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 26px;
+    }
+
+    h1 { margin: 0 0 8px; font-size: clamp(28px, 4vw, 46px); letter-spacing: -0.04em; }
+    .sub { color: var(--muted); max-width: 720px; line-height: 1.6; margin: 0; }
+
+    .badge {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color: var(--accent-2);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .grid { display: grid; gap: 18px; }
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .card {
+      background: linear-gradient(180deg, rgba(18,35,58,.94), rgba(10,24,41,.94));
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 22px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.2);
+    }
+
+    .card h2 { margin: 0 0 18px; font-size: 17px; }
+    label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 7px; }
+
+    input, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: #091524;
+      border-radius: 11px;
+      padding: 12px 13px;
+      outline: none;
+    }
+    input:focus, select:focus { border-color: #4c6f98; box-shadow: 0 0 0 3px rgba(76,111,152,.15); }
+
+    .field { margin-bottom: 14px; }
+    .row { display: flex; gap: 10px; align-items: center; }
+    .row > * { flex: 1; }
+
+    button {
+      appearance: none;
+      border: 0;
+      border-radius: 11px;
+      padding: 12px 16px;
+      font-weight: 750;
+      cursor: pointer;
+      transition: .18s ease;
+    }
+    button:hover:not(:disabled) { transform: translateY(-1px); }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+
+    .primary { background: var(--accent); color: #101827; }
+    .secondary { background: #18304e; color: var(--text); border: 1px solid #29496f; }
+    .ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+
+    .status {
+      margin-top: 12px;
+      min-height: 20px;
+      color: var(--muted);
+      font-size: 13px;
+      white-space: pre-wrap;
+    }
+    .status.ok { color: var(--ok); }
+    .status.error { color: var(--danger); }
+
+    .projects, .surveys { display: grid; gap: 10px; margin-top: 14px; }
+    .item {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid var(--line);
+      background: rgba(4,13,24,.42);
+      border-radius: 13px;
+      padding: 13px 14px;
+    }
+    .item:hover { border-color: #39597d; }
+    .item .main { min-width: 0; }
+    .name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .meta { color: var(--muted); font-size: 12px; margin-top: 3px; }
+    .check { width: 18px; height: 18px; accent-color: var(--accent); flex: 0 0 auto; }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      margin: 16px 0 0;
+      flex-wrap: wrap;
+    }
+    .toolbar .left, .toolbar .right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+    .progress-wrap {
+      margin-top: 16px;
+      display: none;
+    }
+    .progress {
+      height: 10px;
+      width: 100%;
+      background: #07111f;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .25s ease; }
+    .progress-text { color: var(--muted); font-size: 12px; margin-top: 8px; }
+
+    .note {
+      margin-top: 18px;
+      border-left: 3px solid #365d89;
+      padding: 11px 13px;
+      background: rgba(32,62,96,.22);
+      color: #b8c7da;
+      font-size: 12px;
+      line-height: 1.55;
+      border-radius: 0 9px 9px 0;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 760px) {
+      .grid.two { grid-template-columns: 1fr; }
+      .hero { align-items: flex-start; flex-direction: column; }
+      .row { flex-direction: column; align-items: stretch; }
+      .wrap { width: min(100% - 20px, 1120px); padding-top: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="hero">
+      <div>
+        <h1>Dooblo → SPSS</h1>
+        <p class="sub">Connect to SurveyToGo, search for a project, choose its surveys, and download each selected survey as a separate <strong>.sav</strong> file.</p>
+      </div>
+      <div class="badge">Credentials stay in this tab only</div>
+    </div>
+
+    <div class="grid two">
+      <section class="card">
+        <h2>1. Dooblo login</h2>
+
+        <div class="field">
+          <label for="apiKey">Organization REST API Key</label>
+          <input id="apiKey" autocomplete="off" placeholder="XXXX-XXXX-XXXX" />
+        </div>
+
+        <div class="field">
+          <label for="username">Username</label>
+          <input id="username" autocomplete="username" placeholder="username" />
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" />
+        </div>
+
+        <div class="field">
+          <label for="baseUrl">API Base URL</label>
+          <input id="baseUrl" value="https://api.dooblo.net/newapi" />
+        </div>
+
+        <button id="connectBtn" class="primary" style="width:100%">Connect & load customers</button>
+        <div id="loginStatus" class="status"></div>
+      </section>
+
+      <section class="card">
+        <h2>2. Find project</h2>
+
+        <div class="field">
+          <label for="globalProjectSearch">Fast STG search across all customers</label>
+          <input id="globalProjectSearch" disabled placeholder="Type survey / project name or ID..." />
+          <div id="globalProjectStatus" class="status"></div>
+          <div class="meta" style="margin-top:6px">Uses STG SOAP server-side search when available; falls back to REST indexing automatically.</div>
+          <div id="globalProjects" class="projects"></div>
+        </div>
+
+        <div class="field">
+          <label for="customerSearch">Search customer</label>
+          <input id="customerSearch" disabled placeholder="Type customer name or ID..." />
+        </div>
+
+        <div class="field">
+          <label for="customerSelect">Customer</label>
+          <select id="customerSelect" disabled>
+            <option value="">Connect first</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="projectSearch">Search inside selected customer</label>
+            <input id="projectSearch" disabled placeholder="Type project name or ID..." />
+          </div>
+          <div style="flex:0 0 160px;align-self:end">
+            <button id="loadProjectsBtn" class="secondary" disabled style="width:100%">Load projects</button>
+          </div>
+        </div>
+
+        <div id="projects" class="projects"></div>
+        <div id="projectStatus" class="status"></div>
+      </section>
+    </div>
+
+    <section id="surveyCard" class="card hidden" style="margin-top:18px">
+      <h2>3. Select surveys to export</h2>
+      <div id="selectedProject" class="meta" style="margin-bottom:14px"></div>
+
+      <div class="row" style="margin-bottom:12px">
+        <div>
+          <label for="surveySearch">Search surveys</label>
+          <input id="surveySearch" placeholder="Type survey name, ID, or mode..." />
+        </div>
+        <div id="surveySelectionCount" class="meta" style="flex:0 0 auto;align-self:end;padding:0 0 12px"></div>
+      </div>
+
+      <div id="surveys" class="surveys"></div>
+
+      <div class="toolbar">
+        <div class="left">
+          <button id="selectAllBtn" class="ghost">Select all</button>
+          <button id="clearAllBtn" class="ghost">Clear</button>
+        </div>
+        <div class="right">
+          <button id="downloadQuestionnairesBtn" class="secondary">Download selected questionnaires (.docx)</button>
+          <button id="downloadBtn" class="primary">Download selected .sav files</button>
+        </div>
+      </div>
+
+      <div id="progressWrap" class="progress-wrap">
+        <div class="progress"><div id="progressBar" class="bar"></div></div>
+        <div id="progressText" class="progress-text"></div>
+      </div>
+      <div id="downloadStatus" class="status"></div>
+
+      <div class="note">
+        Each survey can be downloaded as its own SPSS file or as a Word questionnaire. The questionnaire is built from Dooblo <code>GetSurveyXML</code> and includes the question text, variable/Short ID, and coded answer choices when available. The SPSS export still uses <code>SimpleExport</code> in sequential batches.
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { writeSav, ReadStatType, ReadStatMeasure } from "https://cdn.jsdelivr.net/npm/@irbisadm/statfmt@0.1.1/+esm";
+    import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from "https://cdn.jsdelivr.net/npm/docx@8.5.0/+esm";
+
+    const $ = (id) => document.getElementById(id);
+
+    const els = {
+      apiKey: $("apiKey"),
+      username: $("username"),
+      password: $("password"),
+      baseUrl: $("baseUrl"),
+      connectBtn: $("connectBtn"),
+      loginStatus: $("loginStatus"),
+      customerSearch: $("customerSearch"),
+      customerSelect: $("customerSelect"),
+      globalProjectSearch: $("globalProjectSearch"),
+      globalProjectStatus: $("globalProjectStatus"),
+      globalProjects: $("globalProjects"),
+      projectSearch: $("projectSearch"),
+      loadProjectsBtn: $("loadProjectsBtn"),
+      projects: $("projects"),
+      projectStatus: $("projectStatus"),
+      surveyCard: $("surveyCard"),
+      selectedProject: $("selectedProject"),
+      surveySearch: $("surveySearch"),
+      surveySelectionCount: $("surveySelectionCount"),
+      surveys: $("surveys"),
+      selectAllBtn: $("selectAllBtn"),
+      clearAllBtn: $("clearAllBtn"),
+      downloadBtn: $("downloadBtn"),
+      downloadQuestionnairesBtn: $("downloadQuestionnairesBtn"),
+      downloadStatus: $("downloadStatus"),
+      progressWrap: $("progressWrap"),
+      progressBar: $("progressBar"),
+      progressText: $("progressText"),
+    };
+
+    const state = {
+      auth: null,
+      baseUrl: "https://api.dooblo.net/newapi",
+      customers: [],
+      projects: [],
+      projectsByCustomer: new Map(),
+      globalProjectsIndex: [],
+      projectScanComplete: false,
+      globalSearchToken: 0,
+      apiKey: "",
+      username: "",
+      password: "",
+      soapEndpoint: "https://stg.dooblo.net/ws/wsdbmain.asmx",
+      soapSearchSpec: null,
+      soapSearchUnavailable: false,
+      soapSearchUnavailableReason: "",
+      soapResults: [],
+      currentProject: null,
+      surveys: [],
+      selectedSurveyIds: new Set(),
+      lastRequestAt: 0,
+    };
+
+    const BATCH_SIZE = 100;
+    const REQUEST_GAP_MS = 650; // conservative: Dooblo is sensitive around ~2 req/s
+    const MAX_RETRIES = 4;
+
+    function setStatus(el, text, type = "") {
+      el.textContent = text || "";
+      el.className = `status ${type}`.trim();
+    }
+
+    function sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    function utf8Base64(text) {
+      const bytes = new TextEncoder().encode(text);
+      let binary = "";
+      const CHUNK = 0x8000;
+      for (let i = 0; i < bytes.length; i += CHUNK) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+      }
+      return btoa(binary);
+    }
+
+    function normalizeBaseUrl(value) {
+      return value.trim().replace(/\/+$/, "");
+    }
+
+    async function paceRequest() {
+      const elapsed = Date.now() - state.lastRequestAt;
+      if (elapsed < REQUEST_GAP_MS) await sleep(REQUEST_GAP_MS - elapsed);
+      state.lastRequestAt = Date.now();
+    }
+
+    async function apiFetch(path, { accept = "application/json" } = {}) {
+      if (!state.auth) throw new Error("Connect first.");
+
+      const url = `${state.baseUrl}/${String(path).replace(/^\/+/, "")}`;
+
+      for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+        await paceRequest();
+
+        let response;
+        try {
+          response = await fetch(url, {
+            method: "GET",
+            mode: "cors",
+            cache: "no-store",
+            headers: {
+              "Accept": accept,
+              "Accept-Charset": "utf-8",
+              "Authorization": `Basic ${state.auth}`,
+            },
+          });
+        } catch (error) {
+          const msg = String(error?.message || error);
+          if (/Failed to fetch|NetworkError/i.test(msg)) {
+            throw new Error(
+              "Browser could not reach Dooblo. This is usually a CORS/network restriction. " +
+              "Serve this file from a normal local/web server and check whether api.dooblo.net allows that origin."
+            );
+          }
+          throw error;
+        }
+
+        if (response.status === 401) {
+          throw new Error("Authentication failed (401). Check API key / username / password.");
+        }
+
+        if (response.status === 429) {
+          if (attempt === MAX_RETRIES) throw new Error("Dooblo rate limit (429) persisted after retries.");
+          const retryAfter = Number(response.headers.get("Retry-After"));
+          const waitMs = Number.isFinite(retryAfter) && retryAfter > 0
+            ? retryAfter * 1000
+            : Math.min(60000, 2500 * (attempt + 1));
+          await sleep(waitMs);
+          continue;
+        }
+
+        if (!response.ok) {
+          const body = await response.text().catch(() => "");
+          throw new Error(`Dooblo HTTP ${response.status}${body ? ` — ${body.slice(0, 220)}` : ""}`);
+        }
+
+        if (accept.includes("json")) {
+          const text = await response.text();
+          if (!text.trim()) return null;
+          try { return JSON.parse(text); }
+          catch { throw new Error("Dooblo returned invalid JSON."); }
+        }
+
+        return response.text();
+      }
+    }
+
+    function customerName(c) {
+      return c?.CustomerName ?? c?.Name ?? String(c?.CustomerID ?? c?.ID ?? "Unknown customer");
+    }
+
+    function customerId(c) {
+      return String(c?.CustomerID ?? c?.ID ?? "");
+    }
+
+    function projectName(p) {
+      return p?.ProjectName ?? p?.Name ?? String(p?.ProjectID ?? p?.ID ?? "Unknown project");
+    }
+
+    function projectId(p) {
+      return String(p?.ProjectID ?? p?.ID ?? "");
+    }
+
+    function surveyName(s) {
+      return s?.SurveyName ?? s?.Name ?? String(s?.SurveyID ?? s?.ID ?? "Unknown survey");
+    }
+
+    function surveyId(s) {
+      return String(s?.SurveyID ?? s?.ID ?? "");
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+
+    function escapeXml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&apos;");
+    }
+
+    function xmlLocalName(node) {
+      return node?.localName || String(node?.nodeName || "").split(":").pop();
+    }
+
+    function childTextMap(node) {
+      const out = {};
+      for (const child of Array.from(node?.children || [])) {
+        const key = xmlLocalName(child);
+        if (!key || out[key] != null) continue;
+        const value = (child.textContent || "").trim();
+        if (value) out[key] = value;
+      }
+      return out;
+    }
+
+    function pickField(map, names) {
+      for (const name of names) {
+        if (map[name] != null && String(map[name]).trim()) return String(map[name]).trim();
+      }
+      return "";
+    }
+
+    function parseSoapRows(xmlDoc) {
+      const rows = [];
+      const seen = new Set();
+      for (const node of Array.from(xmlDoc.getElementsByTagName("*"))) {
+        if (!node.children || node.children.length < 2) continue;
+        const m = childTextMap(node);
+        const sid = pickField(m, ["SurveyID", "SurveyId", "SurveyGuid", "SurveyGUID"]);
+        const sname = pickField(m, ["SurveyName", "Survey", "Name"]);
+        const pid = pickField(m, ["ProjectID", "ProjectId", "ProjectGuid", "ProjectGUID"]);
+        const pname = pickField(m, ["ProjectName", "Project"]);
+        const cid = pickField(m, ["CustomerID", "CustomerId", "CustomerGuid", "CustomerGUID"]);
+        const cname = pickField(m, ["CustomerName", "Customer"]);
+
+        // Dataset responses normally expose one record as an element whose direct
+        // children contain these fields. Keep rows that look survey/project related.
+        if (!sid && !pid) continue;
+        if (!sname && !pname && !cname) continue;
+        const key = `${sid}|${pid}|${cid}|${sname}|${pname}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        rows.push({ surveyId: sid, surveyName: sname, projectId: pid, projectName: pname, customerId: cid, customerName: cname });
+      }
+      return rows;
+    }
+
+    function wsdlTopLevelElements(xmlDoc) {
+      const all = Array.from(xmlDoc.getElementsByTagNameNS("*", "element"));
+      return all.filter((el) => xmlLocalName(el.parentElement) === "schema" && el.getAttribute("name"));
+    }
+
+    function wsdlSoapActions(xmlDoc) {
+      const actions = new Map();
+      for (const op of Array.from(xmlDoc.getElementsByTagNameNS("*", "operation"))) {
+        const name = op.getAttribute("name");
+        if (!name) continue;
+        for (const child of Array.from(op.children || [])) {
+          if (xmlLocalName(child) !== "operation") continue;
+          const action = child.getAttribute("soapAction");
+          if (action) actions.set(name, action);
+        }
+      }
+      return actions;
+    }
+
+    function discoverSoapFilterOperations(wsdlDoc) {
+      const actions = wsdlSoapActions(wsdlDoc);
+      const candidates = [];
+
+      for (const opEl of wsdlTopLevelElements(wsdlDoc)) {
+        const opName = opEl.getAttribute("name");
+        if (!opName || /Response$/i.test(opName)) continue;
+        const params = [];
+        const filterParams = [];
+
+        for (const el of Array.from(opEl.getElementsByTagNameNS("*", "element"))) {
+          if (el === opEl) continue;
+          const name = el.getAttribute("name") || "";
+          const typeRaw = el.getAttribute("type") || "";
+          const type = typeRaw.split(":").pop();
+          const minOccurs = el.getAttribute("minOccurs");
+          const maxOccurs = el.getAttribute("maxOccurs");
+          if (!name) continue;
+          const item = { name, type, typeRaw, required: minOccurs !== "0", maxOccurs };
+          params.push(item);
+          if (/FilterWire$/i.test(type) && /(Survey|Project|Customer)/i.test(type)) filterParams.push(item);
+        }
+
+        if (!filterParams.length) continue;
+        const action = actions.get(opName) || `http://dooblo.net/STG_WebServices/${opName}`;
+        candidates.push({ opName, action, params, filterParams });
+      }
+
+      const score = (c) => {
+        let n = 0;
+        if (/search|find|filter/i.test(c.opName)) n += 100;
+        if (/survey/i.test(c.opName)) n += 30;
+        if (/get|list/i.test(c.opName)) n += 10;
+        n += c.filterParams.length * 5;
+        return n;
+      };
+      return candidates.sort((a, b) => score(b) - score(a));
+    }
+
+    function defaultSoapPrimitive(type) {
+      const t = String(type || "").toLowerCase();
+      if (/(boolean|bool)$/.test(t)) return "false";
+      if (/(int|long|short|decimal|double|float|unsignedint|unsignedlong)$/.test(t)) return "0";
+      if (/datetime$/.test(t)) return "2000-01-01T00:00:00";
+      if (/guid$/.test(t)) return "00000000-0000-0000-0000-000000000000";
+      return "";
+    }
+
+    function soapFilterXml(param, term) {
+      const type = String(param.type || "");
+      let mask = "";
+      if (/Survey/i.test(type)) mask = "SurveyName";
+      else if (/Project/i.test(type)) mask = "ProjectName";
+      else if (/Customer/i.test(type)) mask = "CustomerName";
+
+      return `<${param.name}>` +
+        `<Name>${escapeXml(term)}</Name>` +
+        (mask ? `<Mask>${mask}</Mask>` : "") +
+        `</${param.name}>`;
+    }
+
+    function buildSoapBody(spec, term) {
+      const filterNames = new Set(spec.filterParams.map((x) => x.name));
+      let inner = "";
+      for (const p of spec.params) {
+        if (filterNames.has(p.name)) {
+          inner += soapFilterXml(p, term);
+          continue;
+        }
+        if (!p.required) continue;
+        // Avoid fabricating nested required complex objects. Primitive required
+        // values can safely receive their XSD zero/empty default.
+        if (/FilterWire$/i.test(p.type) || (!p.type && p.typeRaw)) continue;
+        inner += `<${p.name}>${escapeXml(defaultSoapPrimitive(p.type))}</${p.name}>`;
+      }
+      return `<${spec.opName} xmlns="http://dooblo.net/STG_WebServices">${inner}</${spec.opName}>`;
+    }
+
+    function buildSoapEnvelope(spec, term) {
+      const header = `
+        <UserLoginInfoHeader xmlns="http://dooblo.net/STG_WebServices">
+          <ComputerName>Web</ComputerName>
+          <HardwareID></HardwareID>
+          <Organization></Organization>
+          <UserName>${escapeXml(state.username)}</UserName>
+          <ExtRefNum></ExtRefNum>
+          <ClientName>Dooblo Export Tool</ClientName>
+          <Password>${escapeXml(state.password)}</Password>
+          <Key>${escapeXml(state.apiKey)}</Key>
+          <ClientVersion>1.0</ClientVersion>
+          <AppName>WebAPI</AppName>
+          <ClientType>WebAPI</ClientType>
+          <IsActive>true</IsActive>
+          <DeviceID>0</DeviceID>
+          <SID>0</SID>
+          <ClientFlags>None</ClientFlags>
+          <OSVersion></OSVersion>
+          <OSName>Browser</OSName>
+        </UserLoginInfoHeader>`;
+      return `<?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                       xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                       xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Header>${header}</soap:Header>
+          <soap:Body>${buildSoapBody(spec, term)}</soap:Body>
+        </soap:Envelope>`;
+    }
+
+    function soapFaultText(xmlDoc) {
+      const fault = Array.from(xmlDoc.getElementsByTagNameNS("*", "Fault"))[0];
+      if (!fault) return "";
+      const str = Array.from(fault.getElementsByTagNameNS("*", "faultstring"))[0];
+      return (str?.textContent || fault.textContent || "SOAP fault").trim();
+    }
+
+    function soapLoginError(xmlDoc) {
+      const el = Array.from(xmlDoc.getElementsByTagNameNS("*", "LoginError"))[0];
+      const val = (el?.textContent || "").trim();
+      return val && !/^None$/i.test(val) ? val : "";
+    }
+
+    async function loadSoapSearchSpec() {
+      if (state.soapSearchSpec) return state.soapSearchSpec;
+      if (state.soapSearchUnavailable) throw new Error(state.soapSearchUnavailableReason || "STG SOAP search unavailable.");
+
+      let response;
+      try {
+        response = await fetch(`${state.soapEndpoint}?WSDL`, {
+          method: "GET",
+          mode: "cors",
+          cache: "no-store",
+          headers: { "Accept": "text/xml" },
+        });
+      } catch (error) {
+        state.soapSearchUnavailable = true;
+        state.soapSearchUnavailableReason = "STG SOAP WSDL is blocked by browser/CORS.";
+        throw new Error(state.soapSearchUnavailableReason);
+      }
+      if (!response.ok) {
+        state.soapSearchUnavailable = true;
+        state.soapSearchUnavailableReason = `STG SOAP WSDL returned HTTP ${response.status}.`;
+        throw new Error(state.soapSearchUnavailableReason);
+      }
+
+      const text = await response.text();
+      const doc = new DOMParser().parseFromString(text, "text/xml");
+      if (doc.getElementsByTagName("parsererror").length) throw new Error("Could not parse STG SOAP WSDL.");
+      const candidates = discoverSoapFilterOperations(doc);
+      if (!candidates.length) {
+        state.soapSearchUnavailable = true;
+        state.soapSearchUnavailableReason = "No STG SOAP operation using Survey/Project/Customer filters was discovered.";
+        throw new Error(state.soapSearchUnavailableReason);
+      }
+      state.soapSearchSpec = { candidates, candidateIndex: 0 };
+      return state.soapSearchSpec;
+    }
+
+    async function callSoapSearchCandidate(spec, term) {
+      const envelope = buildSoapEnvelope(spec, term);
+      let response;
+      try {
+        response = await fetch(state.soapEndpoint, {
+          method: "POST",
+          mode: "cors",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "text/xml; charset=utf-8",
+            "SOAPAction": `"${spec.action}"`,
+            "Accept": "text/xml",
+          },
+          body: envelope,
+        });
+      } catch (error) {
+        throw new Error("STG SOAP request is blocked by browser/CORS.");
+      }
+      const text = await response.text();
+      const doc = new DOMParser().parseFromString(text, "text/xml");
+      if (doc.getElementsByTagName("parsererror").length) throw new Error(`SOAP ${spec.opName} returned invalid XML.`);
+      const fault = soapFaultText(doc);
+      if (fault) throw new Error(`${spec.opName}: ${fault}`);
+      const loginError = soapLoginError(doc);
+      if (loginError) throw new Error(`STG SOAP login error: ${loginError}`);
+      if (!response.ok) throw new Error(`${spec.opName}: HTTP ${response.status}`);
+      return parseSoapRows(doc);
+    }
+
+    async function fastSoapSearch(term) {
+      const discovered = await loadSoapSearchSpec();
+      const errors = [];
+
+      // Once one operation succeeds, reuse it for subsequent searches.
+      if (discovered.working) {
+        try {
+          const rows = await callSoapSearchCandidate(discovered.working, term);
+          return { rows, operation: discovered.working.opName };
+        } catch (error) {
+          errors.push(error.message || String(error));
+          discovered.working = null;
+        }
+      }
+
+      for (const candidate of discovered.candidates.slice(0, 12)) {
+        try {
+          const rows = await callSoapSearchCandidate(candidate, term);
+          discovered.working = candidate;
+          return { rows, operation: candidate.opName };
+        } catch (error) {
+          errors.push(error.message || String(error));
+          if (/login error/i.test(String(error?.message || error))) throw error;
+        }
+      }
+      throw new Error(`STG SOAP search operation could not be invoked. ${errors.slice(0, 2).join(" | ")}`);
+    }
+
+    function renderSoapResults(rows, operation) {
+      state.soapResults = rows;
+      if (!rows.length) {
+        els.globalProjects.innerHTML = '<div class="meta">No fast STG result matched. Falling back to REST project search…</div>';
+        return false;
+      }
+      els.globalProjects.innerHTML = rows.slice(0, 80).map((r, idx) => `
+        <div class="item">
+          <div class="main">
+            <div class="name">${escapeHtml(r.surveyName || r.projectName || r.surveyId || r.projectId || "STG result")}</div>
+            <div class="meta">${[
+              r.customerName ? `Customer: ${escapeHtml(r.customerName)}` : "",
+              r.projectName ? `Project: ${escapeHtml(r.projectName)}` : "",
+              r.surveyId ? `Survey ID: ${escapeHtml(r.surveyId)}` : "",
+              r.projectId ? `Project ID: ${escapeHtml(r.projectId)}` : "",
+            ].filter(Boolean).join(" · ")}</div>
+          </div>
+          <button class="secondary choose-soap-result" data-index="${idx}" style="flex:0 0 auto">Choose</button>
+        </div>
+      `).join("");
+      els.globalProjects.querySelectorAll(".choose-soap-result").forEach((btn) => {
+        btn.addEventListener("click", () => chooseSoapResult(Number(btn.dataset.index)));
+      });
+      setStatus(els.globalProjectStatus, `Fast STG SOAP search via ${operation}: ${rows.length} result(s).`, "ok");
+      return true;
+    }
+
+    async function locateProjectById(pid) {
+      for (const customer of state.customers) {
+        const cid = customerId(customer);
+        let projects = state.projectsByCustomer.get(cid);
+        if (!projects) {
+          const raw = await apiFetch(`CustomerProjects/${encodeURIComponent(cid)}`);
+          projects = Array.isArray(raw) ? raw : [];
+          state.projectsByCustomer.set(cid, projects);
+        }
+        const project = projects.find((p) => projectId(p) === String(pid));
+        if (project) return { customer, project, projects };
+      }
+      return null;
+    }
+
+    async function locateSurveyById(sid) {
+      for (const customer of state.customers) {
+        const cid = customerId(customer);
+        let projects = state.projectsByCustomer.get(cid);
+        if (!projects) {
+          const raw = await apiFetch(`CustomerProjects/${encodeURIComponent(cid)}`);
+          projects = Array.isArray(raw) ? raw : [];
+          state.projectsByCustomer.set(cid, projects);
+        }
+        for (const project of projects) {
+          let surveys;
+          try { surveys = await apiFetch(`ProjectSurveys/${encodeURIComponent(projectId(project))}`); }
+          catch { continue; }
+          if (!Array.isArray(surveys)) continue;
+          if (surveys.some((s) => surveyId(s) === String(sid))) return { customer, project, projects };
+        }
+      }
+      return null;
+    }
+
+    async function chooseSoapResult(index) {
+      const row = state.soapResults[index];
+      if (!row) return;
+      setStatus(els.globalProjectStatus, "Resolving Customer / Project for selected STG result…");
+      try {
+        let located = null;
+        if (row.customerId && row.projectId) {
+          const customer = state.customers.find((c) => customerId(c) === String(row.customerId));
+          if (customer) {
+            let projects = state.projectsByCustomer.get(customerId(customer));
+            if (!projects) {
+              const raw = await apiFetch(`CustomerProjects/${encodeURIComponent(customerId(customer))}`);
+              projects = Array.isArray(raw) ? raw : [];
+              state.projectsByCustomer.set(customerId(customer), projects);
+            }
+            const project = projects.find((p) => projectId(p) === String(row.projectId));
+            if (project) located = { customer, project, projects };
+          }
+        }
+        if (!located && row.projectId) located = await locateProjectById(row.projectId);
+        if (!located && row.surveyId) located = await locateSurveyById(row.surveyId);
+        if (!located) throw new Error("Fast result was found, but its Customer/Project could not be resolved through the REST API.");
+
+        const { customer, project, projects } = located;
+        els.customerSearch.value = "";
+        renderCustomers();
+        els.customerSelect.value = customerId(customer);
+        state.projects = projects;
+        els.projectSearch.value = "";
+        renderProjects();
+        setStatus(els.projectStatus, `${projects.length} project(s) loaded for ${customerName(customer)}.`, "ok");
+        await chooseProject(projectId(project));
+      } catch (error) {
+        setStatus(els.globalProjectStatus, error.message || String(error), "error");
+      }
+    }
+
+    function safeFilename(name) {
+      const cleaned = String(name || "survey")
+        .normalize("NFKC")
+        .replace(/[\\/:*?"<>|\x00-\x1F]/g, "_")
+        .replace(/\s+/g, " ")
+        .trim();
+      return (cleaned || "survey").slice(0, 120);
+    }
+
+    function renderCustomers() {
+      const current = els.customerSelect.value;
+      const term = els.customerSearch.value.trim().toLowerCase();
+      const filtered = state.customers.filter((c) => {
+        const hay = `${customerName(c)} ${customerId(c)}`.toLowerCase();
+        return !term || hay.includes(term) || customerId(c) === current;
+      });
+
+      els.customerSelect.innerHTML = '<option value="">Select customer...</option>';
+      for (const c of filtered) {
+        const option = document.createElement("option");
+        option.value = customerId(c);
+        option.textContent = `${customerName(c)} (${customerId(c)})`;
+        els.customerSelect.appendChild(option);
+      }
+
+      if (current && filtered.some((c) => customerId(c) === current)) {
+        els.customerSelect.value = current;
+      }
+
+      const hasCustomers = state.customers.length > 0;
+      els.customerSearch.disabled = !hasCustomers;
+      els.customerSelect.disabled = !hasCustomers;
+      els.loadProjectsBtn.disabled = !hasCustomers;
+      els.projectSearch.disabled = !hasCustomers;
+      els.globalProjectSearch.disabled = !hasCustomers;
+
+      if (state.customers.length === 1 && !current && !term) {
+        els.customerSelect.value = customerId(state.customers[0]);
+        loadProjects();
+      }
+    }
+
+    function renderProjects() {
+      const term = els.projectSearch.value.trim().toLowerCase();
+      const filtered = state.projects.filter((p) => {
+        const hay = `${projectName(p)} ${projectId(p)}`.toLowerCase();
+        return !term || hay.includes(term);
+      });
+
+      if (!filtered.length) {
+        els.projects.innerHTML = '<div class="meta">No projects match your search.</div>';
+        return;
+      }
+
+      els.projects.innerHTML = filtered.map((p) => `
+        <div class="item">
+          <div class="main">
+            <div class="name">${escapeHtml(projectName(p))}</div>
+            <div class="meta">Project ID: ${escapeHtml(projectId(p))}</div>
+          </div>
+          <button class="secondary choose-project" data-id="${escapeHtml(projectId(p))}" style="flex:0 0 auto">Choose</button>
+        </div>
+      `).join("");
+
+      els.projects.querySelectorAll(".choose-project").forEach((btn) => {
+        btn.addEventListener("click", () => chooseProject(btn.dataset.id));
+      });
+    }
+
+    function renderGlobalProjects(term) {
+      const query = String(term || "").trim().toLowerCase();
+      if (query.length < 2) {
+        els.globalProjects.innerHTML = "";
+        return;
+      }
+
+      const matches = state.globalProjectsIndex
+        .filter(({ project }) => `${projectName(project)} ${projectId(project)}`.toLowerCase().includes(query))
+        .slice(0, 60);
+
+      if (!matches.length) {
+        els.globalProjects.innerHTML = '<div class="meta">No project matches this search across the loaded customers.</div>';
+        return;
+      }
+
+      els.globalProjects.innerHTML = matches.map(({ customer, project }) => `
+        <div class="item">
+          <div class="main">
+            <div class="name">${escapeHtml(projectName(project))}</div>
+            <div class="meta">Customer: ${escapeHtml(customerName(customer))} · Project ID: ${escapeHtml(projectId(project))}</div>
+          </div>
+          <button class="secondary choose-global-project"
+                  data-customer="${escapeHtml(customerId(customer))}"
+                  data-project="${escapeHtml(projectId(project))}"
+                  style="flex:0 0 auto">Choose</button>
+        </div>
+      `).join("");
+
+      els.globalProjects.querySelectorAll(".choose-global-project").forEach((btn) => {
+        btn.addEventListener("click", () => chooseGlobalProject(btn.dataset.customer, btn.dataset.project));
+      });
+    }
+
+    async function ensureGlobalProjectIndex() {
+      if (state.projectScanComplete) return;
+      if (state.projectScanPromise) return state.projectScanPromise;
+
+      state.projectScanPromise = (async () => {
+        const index = [];
+        const failures = [];
+
+        for (let i = 0; i < state.customers.length; i++) {
+          const customer = state.customers[i];
+          const cid = customerId(customer);
+          setStatus(
+            els.globalProjectStatus,
+            `Searching all customers… ${i + 1}/${state.customers.length}: ${customerName(customer)}`
+          );
+
+          try {
+            let projects = state.projectsByCustomer.get(cid);
+            if (!projects) {
+              const raw = await apiFetch(`CustomerProjects/${encodeURIComponent(cid)}`);
+              projects = Array.isArray(raw) ? raw : [];
+              state.projectsByCustomer.set(cid, projects);
+            }
+            for (const project of projects) index.push({ customer, project });
+          } catch (error) {
+            failures.push(`${customerName(customer)}: ${error.message || String(error)}`);
+          }
+        }
+
+        state.globalProjectsIndex = index;
+        state.projectScanComplete = failures.length === 0;
+        setStatus(
+          els.globalProjectStatus,
+          failures.length
+            ? `Indexed ${index.length} project(s). ${failures.length} customer(s) could not be scanned.`
+            : `Indexed ${index.length} project(s) across ${state.customers.length} customer(s).`,
+          failures.length ? "error" : "ok"
+        );
+      })();
+
+      try {
+        await state.projectScanPromise;
+      } finally {
+        state.projectScanPromise = null;
+      }
+    }
+
+    let globalSearchTimer = null;
+    function scheduleGlobalProjectSearch() {
+      clearTimeout(globalSearchTimer);
+      const term = els.globalProjectSearch.value.trim();
+
+      if (term.length < 2) {
+        els.globalProjects.innerHTML = "";
+        setStatus(els.globalProjectStatus, "Type at least 2 characters. Fast STG search will be tried first.");
+        return;
+      }
+
+      globalSearchTimer = setTimeout(async () => {
+        const token = ++state.globalSearchToken;
+        setStatus(els.globalProjectStatus, "Trying fast STG server-side search…");
+
+        if (!state.soapSearchUnavailable) {
+          try {
+            const result = await fastSoapSearch(term);
+            if (token !== state.globalSearchToken) return;
+            if (renderSoapResults(result.rows, result.operation)) return;
+          } catch (error) {
+            if (token !== state.globalSearchToken) return;
+            state.soapSearchUnavailable = true;
+            state.soapSearchUnavailableReason = error.message || String(error);
+            setStatus(
+              els.globalProjectStatus,
+              `Fast STG SOAP unavailable (${state.soapSearchUnavailableReason}). Falling back to REST indexing…`
+            );
+          }
+        } else {
+          setStatus(
+            els.globalProjectStatus,
+            `Fast STG SOAP unavailable (${state.soapSearchUnavailableReason}). Using REST index…`
+          );
+        }
+
+        try {
+          await ensureGlobalProjectIndex();
+          if (token !== state.globalSearchToken) return;
+          renderGlobalProjects(els.globalProjectSearch.value);
+        } catch (error) {
+          if (token !== state.globalSearchToken) return;
+          setStatus(els.globalProjectStatus, error.message || String(error), "error");
+        }
+      }, 450);
+    }
+
+    async function chooseGlobalProject(customerIdValue, projectIdValue) {
+      const cid = String(customerIdValue);
+      const pid = String(projectIdValue);
+      const customer = state.customers.find((c) => customerId(c) === cid);
+      const projects = state.projectsByCustomer.get(cid) || [];
+      const project = projects.find((p) => projectId(p) === pid);
+      if (!customer || !project) return;
+
+      els.customerSearch.value = "";
+      renderCustomers();
+      els.customerSelect.value = cid;
+      state.projects = projects;
+      els.projectSearch.value = "";
+      renderProjects();
+      setStatus(els.projectStatus, `${projects.length} project(s) loaded for ${customerName(customer)}.`, "ok");
+      await chooseProject(pid);
+    }
+
+    function updateSurveySelectionCount() {
+      const selected = state.surveys.filter((s) => state.selectedSurveyIds.has(surveyId(s))).length;
+      const term = els.surveySearch.value.trim().toLowerCase();
+      const shown = state.surveys.filter((s) => {
+        const hay = `${surveyName(s)} ${surveyId(s)} ${s?.Mode ?? ""}`.toLowerCase();
+        return !term || hay.includes(term);
+      }).length;
+      els.surveySelectionCount.textContent = `${selected}/${state.surveys.length} selected · ${shown} shown`;
+    }
+
+    function renderSurveys() {
+      if (!state.surveys.length) {
+        els.surveys.innerHTML = '<div class="meta">No surveys found in this project.</div>';
+        els.downloadBtn.disabled = true;
+        els.downloadQuestionnairesBtn.disabled = true;
+        els.selectAllBtn.disabled = true;
+        els.clearAllBtn.disabled = true;
+        updateSurveySelectionCount();
+        return;
+      }
+
+      const term = els.surveySearch.value.trim().toLowerCase();
+      const filtered = state.surveys
+        .map((survey, index) => ({ survey, index }))
+        .filter(({ survey }) => {
+          const hay = `${surveyName(survey)} ${surveyId(survey)} ${survey?.Mode ?? ""}`.toLowerCase();
+          return !term || hay.includes(term);
+        });
+
+      els.downloadBtn.disabled = false;
+      els.downloadQuestionnairesBtn.disabled = false;
+      els.selectAllBtn.disabled = false;
+      els.clearAllBtn.disabled = false;
+
+      if (!filtered.length) {
+        els.surveys.innerHTML = '<div class="meta">No surveys match your search.</div>';
+        updateSurveySelectionCount();
+        return;
+      }
+
+      els.surveys.innerHTML = filtered.map(({ survey: s, index: idx }) => `
+        <div class="item survey-row">
+          <label style="display:flex;gap:12px;align-items:center;min-width:0;flex:1;cursor:pointer;margin:0;color:inherit">
+            <input class="check survey-check" type="checkbox" data-index="${idx}" ${state.selectedSurveyIds.has(surveyId(s)) ? "checked" : ""} />
+            <div class="main">
+              <div class="name">${escapeHtml(surveyName(s))}</div>
+              <div class="meta">Survey ID: ${escapeHtml(surveyId(s))}${s?.Mode != null ? ` · Mode: ${escapeHtml(s.Mode)}` : ""}</div>
+            </div>
+          </label>
+          <button class="secondary questionnaire-one" data-index="${idx}" style="flex:0 0 auto">Word Questionnaire</button>
+        </div>
+      `).join("");
+
+      els.surveys.querySelectorAll(".survey-check").forEach((check) => {
+        check.addEventListener("change", () => {
+          const survey = state.surveys[Number(check.dataset.index)];
+          if (!survey) return;
+          const sid = surveyId(survey);
+          if (check.checked) state.selectedSurveyIds.add(sid);
+          else state.selectedSurveyIds.delete(sid);
+          updateSurveySelectionCount();
+        });
+      });
+
+      els.surveys.querySelectorAll(".questionnaire-one").forEach((btn) => {
+        btn.addEventListener("click", () => downloadQuestionnaireForSurvey(Number(btn.dataset.index), btn));
+      });
+
+      updateSurveySelectionCount();
+    }
+
+    async function connect() {
+      const apiKey = els.apiKey.value.trim();
+      const username = els.username.value.trim();
+      const password = els.password.value;
+      const baseUrl = normalizeBaseUrl(els.baseUrl.value);
+
+      if (!apiKey || !username || !password || !baseUrl) {
+        setStatus(els.loginStatus, "Fill API key, username, password and base URL.", "error");
+        return;
+      }
+
+      state.baseUrl = baseUrl;
+      state.apiKey = apiKey;
+      state.username = username;
+      state.password = password;
+      state.auth = utf8Base64(`${apiKey}/${username}:${password}`);
+      state.lastRequestAt = 0;
+      state.projects = [];
+      state.projectsByCustomer = new Map();
+      state.globalProjectsIndex = [];
+      state.projectScanComplete = false;
+      state.projectScanPromise = null;
+      state.globalSearchToken = 0;
+      state.soapSearchSpec = null;
+      state.soapSearchUnavailable = false;
+      state.soapSearchUnavailableReason = "";
+      state.soapResults = [];
+      state.currentProject = null;
+      state.surveys = [];
+      state.selectedSurveyIds = new Set();
+      els.customerSearch.value = "";
+      els.projectSearch.value = "";
+      els.globalProjectSearch.value = "";
+      els.surveySearch.value = "";
+      els.projects.innerHTML = "";
+      els.globalProjects.innerHTML = "";
+      els.surveyCard.classList.add("hidden");
+      setStatus(els.globalProjectStatus, "");
+
+      els.connectBtn.disabled = true;
+      setStatus(els.loginStatus, "Connecting...");
+
+      try {
+        const customers = await apiFetch("Customers");
+        state.customers = Array.isArray(customers) ? customers : [];
+        renderCustomers();
+        setStatus(els.loginStatus, `Connected. ${state.customers.length} customer(s) found.`, "ok");
+      } catch (error) {
+        state.auth = null;
+        state.customers = [];
+        renderCustomers();
+        setStatus(els.loginStatus, error.message || String(error), "error");
+      } finally {
+        els.connectBtn.disabled = false;
+      }
+    }
+
+    async function loadProjects() {
+      const customer = els.customerSelect.value;
+      if (!customer) {
+        setStatus(els.projectStatus, "Select a customer first.", "error");
+        return;
+      }
+
+      els.loadProjectsBtn.disabled = true;
+      setStatus(els.projectStatus, "Loading projects...");
+      els.projects.innerHTML = "";
+      els.surveyCard.classList.add("hidden");
+
+      try {
+        let projects = state.projectsByCustomer.get(customer);
+        if (!projects) {
+          const raw = await apiFetch(`CustomerProjects/${encodeURIComponent(customer)}`);
+          projects = Array.isArray(raw) ? raw : [];
+          state.projectsByCustomer.set(customer, projects);
+        }
+        state.projects = projects;
+        renderProjects();
+        const customer = state.customers.find((c) => customerId(c) === els.customerSelect.value);
+        setStatus(
+          els.projectStatus,
+          `${state.projects.length} project(s) found${customer ? ` for ${customerName(customer)}` : ""}.`,
+          "ok"
+        );
+      } catch (error) {
+        state.projects = [];
+        setStatus(els.projectStatus, error.message || String(error), "error");
+      } finally {
+        els.loadProjectsBtn.disabled = false;
+      }
+    }
+
+    async function chooseProject(id) {
+      const p = state.projects.find((x) => projectId(x) === String(id));
+      if (!p) return;
+
+      state.currentProject = p;
+      state.surveys = [];
+      state.selectedSurveyIds = new Set();
+      els.surveySearch.value = "";
+      els.surveyCard.classList.remove("hidden");
+      els.selectedProject.textContent = `Project: ${projectName(p)} · ID ${projectId(p)}`;
+      els.surveys.innerHTML = '<div class="meta">Loading surveys...</div>';
+      setStatus(els.downloadStatus, "");
+
+      try {
+        const surveys = await apiFetch(`ProjectSurveys/${encodeURIComponent(projectId(p))}`);
+        state.surveys = Array.isArray(surveys) ? surveys : [];
+        state.selectedSurveyIds = new Set(state.surveys.map((s) => surveyId(s)));
+        renderSurveys();
+        els.surveyCard.scrollIntoView({ behavior: "smooth", block: "start" });
+      } catch (error) {
+        els.surveys.innerHTML = "";
+        setStatus(els.downloadStatus, error.message || String(error), "error");
+      }
+    }
+
+    function chunk(array, size) {
+      const out = [];
+      for (let i = 0; i < array.length; i += size) out.push(array.slice(i, i + size));
+      return out;
+    }
+
+    function normalizeSubjectId(value) {
+      let id = String(value ?? "").trim();
+      if (id.endsWith(".0") && /^-?\d+\.0$/.test(id)) id = id.slice(0, -2);
+      return id;
+    }
+
+    function normalizeSubjectIds(raw) {
+      if (!Array.isArray(raw)) return [];
+      const seen = new Set();
+      const out = [];
+      for (const value of raw) {
+        const id = normalizeSubjectId(value);
+        if (!id || seen.has(id)) continue;
+        seen.add(id);
+        out.push(id);
+      }
+      return out;
+    }
+
+    async function getSurveySubjectIds(id) {
+      const raw = await apiFetch(`SurveyInterviewIDs?surveyIDs=${encodeURIComponent(id)}`);
+      return normalizeSubjectIds(raw);
+    }
+
+    async function simpleExportBatch(id, ids) {
+      const params = new URLSearchParams({
+        surveyID: String(id),
+        subjectIDs: ids.join(","),
+        dontCreateEmptyColumns: "false",
+        includeNulls: "true",
+      });
+      return apiFetch(`SimpleExport?${params.toString()}`);
+    }
+
+    function returnedSubjectIdSet(payloads) {
+      const out = new Set();
+      for (const payload of payloads) {
+        const subjects = Array.isArray(payload?.Subjects) ? payload.Subjects : [];
+        for (const subject of subjects) {
+          const id = normalizeSubjectId(subject?.SubjectID ?? subject?.SbjNum);
+          if (id) out.add(id);
+        }
+      }
+      return out;
+    }
+
+    async function simpleExportBatchWithRecovery(surveyIdValue, requestedIds) {
+      const payloads = [];
+      const first = await simpleExportBatch(surveyIdValue, requestedIds);
+      if (first && typeof first === "object") payloads.push(first);
+
+      let returned = returnedSubjectIdSet(payloads);
+      let missing = requestedIds.filter((id) => !returned.has(normalizeSubjectId(id)));
+      if (!missing.length) return payloads;
+
+      // Dooblo can occasionally return HTTP 200 but omit subjects from a larger batch.
+      // Retry only the missing IDs in smaller groups, then individually as a last pass.
+      for (const retryGroup of chunk(missing, 20)) {
+        const retryPayload = await simpleExportBatch(surveyIdValue, retryGroup);
+        if (retryPayload && typeof retryPayload === "object") payloads.push(retryPayload);
+      }
+
+      returned = returnedSubjectIdSet(payloads);
+      missing = requestedIds.filter((id) => !returned.has(normalizeSubjectId(id)));
+
+      for (const id of missing) {
+        const retryPayload = await simpleExportBatch(surveyIdValue, [id]);
+        if (retryPayload && typeof retryPayload === "object") payloads.push(retryPayload);
+      }
+
+      returned = returnedSubjectIdSet(payloads);
+      missing = requestedIds.filter((id) => !returned.has(normalizeSubjectId(id)));
+      if (missing.length) {
+        throw new Error(`Dooblo omitted ${missing.length} interview(s) after recovery retries. First missing ID: ${missing[0]}`);
+      }
+
+      return payloads;
+    }
+
+    function subjectRowsFromPayload(payloads) {
+      const rows = [];
+      for (const payload of payloads) {
+        const subjects = Array.isArray(payload?.Subjects) ? payload.Subjects : [];
+        for (const subject of subjects) {
+          if (!subject || typeof subject !== "object") continue;
+          const row = { SubjectID: subject.SubjectID ?? subject.SbjNum ?? null };
+          const columns = Array.isArray(subject.Columns) ? subject.Columns : [];
+          for (const col of columns) {
+            if (!col || col.Var == null) continue;
+            row[String(col.Var)] = col.Value ?? null; // last duplicate wins, matching existing pipeline
+          }
+          rows.push(row);
+        }
+      }
+      return rows;
+    }
+
+    const SPSS_RESERVED = new Set([
+      "ALL", "AND", "BY", "EQ", "GE", "GT", "LE", "LT", "NE", "NOT", "OR", "TO", "WITH",
+      "DATE", "TIME"
+    ]);
+
+    function sanitizeSpssName(original, used) {
+      let name = String(original || "V").normalize("NFKD")
+        .replace(/[^A-Za-z0-9_]/g, "_")
+        .replace(/_+/g, "_");
+
+      if (!/^[A-Za-z]/.test(name)) name = `V_${name}`;
+      if (SPSS_RESERVED.has(name.toUpperCase())) name = `V_${name}`;
+      if (!name) name = "V";
+      name = name.slice(0, 64);
+
+      let candidate = name;
+      let i = 2;
+      while (used.has(candidate.toLowerCase())) {
+        const suffix = `_${i++}`;
+        candidate = name.slice(0, 64 - suffix.length) + suffix;
+      }
+      used.add(candidate.toLowerCase());
+      return candidate;
+    }
+
+    function isCanonicalNumeric(value) {
+      if (typeof value === "number") return Number.isFinite(value);
+      if (typeof value !== "string") return false;
+      const s = value.trim();
+      if (!s || !/^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$/.test(s)) return false;
+      if (/^-?0\d+/.test(s)) return false; // preserve leading-zero IDs as text
+      return Number.isFinite(Number(s));
+    }
+
+    function inferColumnType(values, forceNumeric = false) {
+      const nonEmpty = values.filter((v) => v !== null && v !== undefined && String(v).trim() !== "");
+      if (forceNumeric) return "numeric";
+      if (nonEmpty.length && nonEmpty.every(isCanonicalNumeric)) return "numeric";
+      return "string";
+    }
+
+    const UTF8 = new TextEncoder();
+    const SPSS_MAX_STRING_BYTES = 32767;
+
+    function utf8ByteLength(value) {
+      return UTF8.encode(String(value ?? "")).length;
+    }
+
+    function truncateUtf8(value, maxBytes = SPSS_MAX_STRING_BYTES) {
+      const text = String(value ?? "");
+      if (utf8ByteLength(text) <= maxBytes) return text;
+
+      // Binary-search the largest prefix that fits without splitting a UTF-8 character.
+      let lo = 0;
+      let hi = text.length;
+      while (lo < hi) {
+        const mid = Math.ceil((lo + hi) / 2);
+        const candidate = text.slice(0, mid);
+        if (utf8ByteLength(candidate) <= maxBytes) lo = mid;
+        else hi = mid - 1;
+      }
+      return text.slice(0, lo);
+    }
+
+    function stringWidth(values) {
+      let maxBytes = 1;
+      for (const value of values) {
+        if (value == null) continue;
+        maxBytes = Math.max(maxBytes, utf8ByteLength(value));
+      }
+
+      // ReadStat/statfmt validates encoded byte length against storageWidth.
+      // Add a small safety margin for multibyte text, capped at SPSS long-string max.
+      const withMargin = maxBytes < SPSS_MAX_STRING_BYTES ? maxBytes + 8 : maxBytes;
+      return Math.min(Math.max(withMargin, 8), SPSS_MAX_STRING_BYTES);
+    }
+
+    function buildSavBytes(rows, fileLabel) {
+      if (!rows.length) throw new Error("No interview rows were returned for this survey.");
+
+      const originalColumns = ["SubjectID"];
+      const seenOriginal = new Set(originalColumns);
+      for (const row of rows) {
+        for (const key of Object.keys(row)) {
+          if (!seenOriginal.has(key)) {
+            seenOriginal.add(key);
+            originalColumns.push(key);
+          }
+        }
+      }
+
+      const used = new Set();
+      const defs = originalColumns.map((original, index) => {
+        const values = rows.map((r) => r[original]);
+        const type = inferColumnType(values, index === 0);
+        const name = sanitizeSpssName(original, used);
+
+        if (type === "numeric") {
+          return {
+            original,
+            name,
+            variable: {
+              name,
+              type: ReadStatType.DOUBLE,
+              label: truncateUtf8(original, 255),
+              measure: ReadStatMeasure.SCALE,
+            },
+          };
+        }
+
+        return {
+          original,
+          name,
+          variable: {
+            name,
+            type: ReadStatType.STRING,
+            label: truncateUtf8(original, 255),
+            storageWidth: stringWidth(values),
+            measure: ReadStatMeasure.NOMINAL,
+          },
+        };
+      });
+
+      const dataRows = rows.map((row) => defs.map((d) => {
+        const value = row[d.original];
+        if (value === null || value === undefined || String(value).trim() === "") return null;
+        if (d.variable.type === ReadStatType.DOUBLE) {
+          const n = Number(value);
+          return Number.isFinite(n) ? n : null;
+        }
+        return truncateUtf8(value, d.variable.storageWidth || SPSS_MAX_STRING_BYTES);
+      }));
+
+      try {
+        return writeSav({
+          fileLabel: truncateUtf8(fileLabel || "Dooblo survey", 64),
+          variables: defs.map((d) => d.variable),
+          rows: dataRows,
+        });
+      } catch (error) {
+        // Surface the widest string columns to make any remaining writer issue diagnosable.
+        const widest = defs
+          .filter((d) => d.variable.type === ReadStatType.STRING)
+          .map((d) => ({
+            name: d.original,
+            width: d.variable.storageWidth,
+            actual: Math.max(0, ...rows.map((r) => r[d.original] == null ? 0 : utf8ByteLength(r[d.original]))),
+          }))
+          .sort((a, b) => b.actual - a.actual)
+          .slice(0, 5)
+          .map((x) => `${x.name}: ${x.actual}/${x.width} bytes`)
+          .join("; ");
+        throw new Error(`${error?.message || error}${widest ? ` | widest strings: ${widest}` : ""}`);
+      }
+    }
+
+    function directChildText(node, tagName) {
+      if (!node) return "";
+      for (const child of node.children || []) {
+        if (child.tagName === tagName) return (child.textContent || "").trim();
+      }
+      const fallback = node.getElementsByTagName?.(tagName)?.[0];
+      return (fallback?.textContent || "").trim();
+    }
+
+    function parseQuestionnaireXml(xmlText) {
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(String(xmlText || ""), "application/xml");
+      if (xml.getElementsByTagName("parsererror").length) {
+        throw new Error("Dooblo returned questionnaire XML that could not be parsed.");
+      }
+
+      const answersByQuestion = new Map();
+      const seenAnswers = new Set();
+      for (const node of [...xml.getElementsByTagName("SAN")]) {
+        const questionId = directChildText(node, "QuestionID");
+        if (!questionId) continue;
+        const deleted = directChildText(node, "Deleted");
+        const active = directChildText(node, "IsActive");
+        if (deleted === "1" || /^false$/i.test(active)) continue;
+
+        const answer = {
+          questionId,
+          coding: directChildText(node, "Coding"),
+          text: directChildText(node, "Text"),
+          shortId: directChildText(node, "ShortID"),
+          variableName: directChildText(node, "VariableName"),
+          idx: Number(directChildText(node, "Idx")),
+        };
+        const key = `${questionId}|${answer.coding}|${answer.text}|${answer.variableName}`;
+        if (seenAnswers.has(key)) continue;
+        seenAnswers.add(key);
+        if (!answersByQuestion.has(questionId)) answersByQuestion.set(questionId, []);
+        answersByQuestion.get(questionId).push(answer);
+      }
+
+      for (const list of answersByQuestion.values()) {
+        list.sort((a, b) => {
+          const ai = Number.isFinite(a.idx) ? a.idx : Number.MAX_SAFE_INTEGER;
+          const bi = Number.isFinite(b.idx) ? b.idx : Number.MAX_SAFE_INTEGER;
+          return ai - bi;
+        });
+      }
+
+      const questions = [];
+      const seenQuestions = new Set();
+      for (const node of [...xml.getElementsByTagName("SQ")]) {
+        const q = {
+          questionId: directChildText(node, "QuestionID"),
+          xmlIndex: Number(directChildText(node, "Idx")),
+          text: directChildText(node, "Text"),
+          description: directChildText(node, "Description"),
+          shortId: directChildText(node, "ShortID"),
+          variableName: directChildText(node, "VariableName"),
+          questionType: directChildText(node, "QuestionType"),
+        };
+        const key = `${q.questionId}|${q.shortId}|${q.variableName}|${q.text}`;
+        if (seenQuestions.has(key)) continue;
+        seenQuestions.add(key);
+        q.answers = answersByQuestion.get(q.questionId) || [];
+        questions.push(q);
+      }
+
+      if (!questions.length) throw new Error("No <SQ> questions were found in GetSurveyXML.");
+      return questions;
+    }
+
+    function hasRtl(text) {
+      return /[\u0590-\u08FF\uFB1D-\uFDFD\uFE70-\uFEFC]/.test(String(text || ""));
+    }
+
+    function wordParagraph(text, options = {}) {
+      const value = String(text ?? "").trim();
+      const rtl = hasRtl(value);
+      const { run = {}, ...paragraphOptions } = options;
+      return new Paragraph({
+        ...paragraphOptions,
+        bidirectional: rtl,
+        alignment: paragraphOptions.alignment ?? (rtl ? AlignmentType.RIGHT : AlignmentType.LEFT),
+        children: [new TextRun({ text: value || " ", rightToLeft: rtl, ...run })],
+      });
+    }
+
+    function buildQuestionnaireDocx(survey, questions) {
+      const sname = surveyName(survey);
+      const sid = surveyId(survey);
+      const project = state.currentProject ? projectName(state.currentProject) : "";
+      const children = [
+        wordParagraph(sname, {
+          heading: HeadingLevel.TITLE,
+          spacing: { after: 120 },
+          run: { bold: true, size: 34 },
+        }),
+        wordParagraph(`${project ? `Project: ${project}  ·  ` : ""}Survey ID: ${sid}`, {
+          spacing: { after: 300 },
+          run: { color: "666666", size: 18 },
+        }),
+      ];
+
+      questions.forEach((q, index) => {
+        const qText = q.text || q.description || "[No question text]";
+        const metadata = [
+          q.variableName ? `Variable: ${q.variableName}` : "",
+          q.shortId ? `Short ID: ${q.shortId}` : "",
+          q.questionId ? `Question ID: ${q.questionId}` : "",
+        ].filter(Boolean).join("  ·  ");
+
+        children.push(wordParagraph(`${index + 1}. ${qText}`, {
+          spacing: { before: 220, after: 80 },
+          keepNext: true,
+          run: { bold: true, size: 24 },
+        }));
+
+        if (metadata) {
+          children.push(wordParagraph(metadata, {
+            spacing: { after: 90 },
+            run: { color: "777777", italics: true, size: 17 },
+          }));
+        }
+
+        if (q.answers.length) {
+          for (const a of q.answers) {
+            const prefix = a.coding ? `${a.coding}. ` : "• ";
+            children.push(wordParagraph(`${prefix}${a.text || "[blank answer text]"}`, {
+              indent: { left: 360, right: 360 },
+              spacing: { after: 35 },
+              run: { size: 20 },
+            }));
+          }
+        } else {
+          children.push(wordParagraph("[Open-ended / no coded answer choices]", {
+            indent: { left: 360, right: 360 },
+            spacing: { after: 40 },
+            run: { italics: true, color: "888888", size: 18 },
+          }));
+        }
+      });
+
+      return new Document({
+        creator: "Dooblo Questionnaire Downloader",
+        title: sname,
+        description: `Questionnaire exported from Dooblo survey ${sid}`,
+        sections: [{
+          properties: {
+            page: {
+              margin: { top: 900, right: 900, bottom: 900, left: 900 },
+            },
+          },
+          children,
+        }],
+      });
+    }
+
+    function saveBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+    }
+
+    async function fetchQuestionnaire(survey) {
+      const sid = surveyId(survey);
+      const xmlText = await apiFetch(`Surveys/GetSurveyXML/${encodeURIComponent(sid)}`, {
+        accept: "text/xml",
+      });
+      return parseQuestionnaireXml(xmlText);
+    }
+
+    async function exportQuestionnaireDocx(survey) {
+      const questions = await fetchQuestionnaire(survey);
+      const doc = buildQuestionnaireDocx(survey, questions);
+      const blob = await Packer.toBlob(doc);
+      saveBlob(blob, `${safeFilename(surveyName(survey))}_${surveyId(survey)}_Questionnaire.docx`);
+      return questions.length;
+    }
+
+    async function downloadQuestionnaireForSurvey(index, button = null) {
+      const survey = state.surveys[index];
+      if (!survey) return;
+      if (button) button.disabled = true;
+      setStatus(els.downloadStatus, `${surveyName(survey)}: building Word questionnaire...`);
+      try {
+        const count = await exportQuestionnaireDocx(survey);
+        setStatus(els.downloadStatus, `Downloaded questionnaire for ${surveyName(survey)} (${count} questions).`, "ok");
+      } catch (error) {
+        setStatus(els.downloadStatus, `${surveyName(survey)}: ${error.message || String(error)}`, "error");
+      } finally {
+        if (button) button.disabled = false;
+      }
+    }
+
+    async function downloadSelectedQuestionnaires() {
+      const selected = state.surveys.filter((s) => state.selectedSurveyIds.has(surveyId(s)));
+      if (!selected.length) {
+        setStatus(els.downloadStatus, "Select at least one survey.", "error");
+        return;
+      }
+
+      els.downloadQuestionnairesBtn.disabled = true;
+      els.downloadBtn.disabled = true;
+      els.selectAllBtn.disabled = true;
+      els.clearAllBtn.disabled = true;
+      const done = [];
+      const failed = [];
+
+      try {
+        for (let i = 0; i < selected.length; i++) {
+          const survey = selected[i];
+          setProgress((i / selected.length) * 100, `[${i + 1}/${selected.length}] ${surveyName(survey)}: loading questionnaire XML...`);
+          try {
+            const count = await exportQuestionnaireDocx(survey);
+            done.push(`✓ ${surveyName(survey)}: ${count} questions`);
+            await sleep(700);
+          } catch (error) {
+            failed.push(`✗ ${surveyName(survey)}: ${error.message || String(error)}`);
+          }
+        }
+        setProgress(100, `Finished ${done.length}/${selected.length} questionnaire(s).`);
+        setStatus(
+          els.downloadStatus,
+          [done.length ? `Downloaded ${done.length} questionnaire .docx file(s).` : "No questionnaire files downloaded.", ...done, ...failed].join("\n"),
+          failed.length ? "error" : "ok"
+        );
+      } finally {
+        els.downloadQuestionnairesBtn.disabled = false;
+        els.downloadBtn.disabled = false;
+        els.selectAllBtn.disabled = false;
+        els.clearAllBtn.disabled = false;
+      }
+    }
+
+    function saveBytes(bytes, filename) {
+      const blob = new Blob([bytes], { type: "application/x-spss-sav" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+    }
+
+    function setProgress(percent, text) {
+      els.progressWrap.style.display = "block";
+      els.progressBar.style.width = `${Math.max(0, Math.min(100, percent))}%`;
+      els.progressText.textContent = text || "";
+    }
+
+    async function exportOneSurvey(survey, surveyIndex, totalSurveys) {
+      const sid = surveyId(survey);
+      const sname = surveyName(survey);
+
+      setProgress(
+        ((surveyIndex) / totalSurveys) * 100,
+        `[${surveyIndex + 1}/${totalSurveys}] ${sname}: loading interview IDs...`
+      );
+
+      const subjectIds = await getSurveySubjectIds(sid);
+      if (!subjectIds.length) throw new Error(`${sname}: no interview IDs found.`);
+
+      const batches = chunk(subjectIds, BATCH_SIZE);
+      const payloads = [];
+
+      for (let i = 0; i < batches.length; i++) {
+        const overall = ((surveyIndex + (i / Math.max(1, batches.length))) / totalSurveys) * 100;
+        setProgress(
+          overall,
+          `[${surveyIndex + 1}/${totalSurveys}] ${sname}: exporting batch ${i + 1}/${batches.length} (${subjectIds.length} interviews)...`
+        );
+        const recoveredPayloads = await simpleExportBatchWithRecovery(sid, batches[i]);
+        payloads.push(...recoveredPayloads);
+      }
+
+      const rows = subjectRowsFromPayload(payloads);
+      if (!rows.length) throw new Error(`${sname}: SimpleExport returned no subjects.`);
+
+      setProgress(
+        ((surveyIndex + 0.96) / totalSurveys) * 100,
+        `[${surveyIndex + 1}/${totalSurveys}] ${sname}: building SPSS file (${rows.length} rows)...`
+      );
+
+      const bytes = buildSavBytes(rows, `${sname} (${sid})`);
+      saveBytes(bytes, `${safeFilename(sname)}_${sid}.sav`);
+      await sleep(900); // gives the browser time between separate download prompts
+
+      return { survey: sname, subjectIds: subjectIds.length, rows: rows.length };
+    }
+
+    async function downloadSelected() {
+      const selected = state.surveys.filter((s) => state.selectedSurveyIds.has(surveyId(s)));
+
+      if (!selected.length) {
+        setStatus(els.downloadStatus, "Select at least one survey.", "error");
+        return;
+      }
+
+      els.downloadBtn.disabled = true;
+      els.selectAllBtn.disabled = true;
+      els.clearAllBtn.disabled = true;
+      setStatus(els.downloadStatus, "Starting export...");
+      setProgress(0, "Preparing...");
+
+      const done = [];
+      const failed = [];
+
+      try {
+        for (let i = 0; i < selected.length; i++) {
+          try {
+            done.push(await exportOneSurvey(selected[i], i, selected.length));
+          } catch (error) {
+            failed.push(`${surveyName(selected[i])}: ${error.message || String(error)}`);
+          }
+        }
+
+        setProgress(100, `Finished ${done.length}/${selected.length} survey(s).`);
+
+        const summary = [
+          done.length ? `Downloaded ${done.length} .sav file(s).` : "No files downloaded.",
+          ...done.map((x) => `✓ ${x.survey}: ${x.rows}/${x.subjectIds} rows`),
+          ...failed.map((x) => `✗ ${x}`),
+        ].join("\n");
+
+        setStatus(els.downloadStatus, summary, failed.length ? "error" : "ok");
+      } finally {
+        els.downloadBtn.disabled = false;
+        els.selectAllBtn.disabled = false;
+        els.clearAllBtn.disabled = false;
+      }
+    }
+
+    els.connectBtn.addEventListener("click", connect);
+    els.loadProjectsBtn.addEventListener("click", loadProjects);
+    els.customerSearch.addEventListener("input", renderCustomers);
+    els.globalProjectSearch.addEventListener("input", scheduleGlobalProjectSearch);
+    els.customerSelect.addEventListener("change", () => {
+      state.projects = [];
+      els.projectSearch.value = "";
+      els.projects.innerHTML = "";
+      els.surveyCard.classList.add("hidden");
+      if (els.customerSelect.value) loadProjects();
+    });
+    els.projectSearch.addEventListener("input", renderProjects);
+    els.surveySearch.addEventListener("input", renderSurveys);
+    els.selectAllBtn.addEventListener("click", () => {
+      state.selectedSurveyIds = new Set(state.surveys.map((s) => surveyId(s)));
+      renderSurveys();
+    });
+    els.clearAllBtn.addEventListener("click", () => {
+      state.selectedSurveyIds.clear();
+      renderSurveys();
+    });
+    els.downloadBtn.addEventListener("click", downloadSelected);
+    els.downloadQuestionnairesBtn.addEventListener("click", downloadSelectedQuestionnaires);
+  </script>
+</body>
+</html>
